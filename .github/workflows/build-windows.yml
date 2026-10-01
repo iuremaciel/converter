@@ -6,6 +6,9 @@ on:
     branches: [main]
     paths:
       - 'pdfa_lote.py'
+      - 'LEIA-ME-PDF-A-Lote.md'
+      - 'LICENSE'
+      - 'TERCEIROS.md'
       - '.github/workflows/build-windows.yml'
 
 permissions:
@@ -26,13 +29,25 @@ jobs:
       - name: Install PyInstaller
         run: python -m pip install --upgrade pip pyinstaller==6.22.2
 
-      - name: Build single-file Windows executable
-        run: pyinstaller --clean --noconfirm --onefile --windowed --name PDF-A-Lote pdfa_lote.py
+      - name: Install Ghostscript AGPL build
+        run: choco install ghostscript --yes --no-progress
 
-      - name: Upload executable
+      - name: Build portable application
+        shell: pwsh
+        run: |
+          Invoke-WebRequest 'https://ftp.gnu.org/pub/gnu/Licenses/agpl-3.0.txt' -OutFile 'LICENSE'
+          pyinstaller --clean --noconfirm --onedir --windowed --name PDF-A-Lote pdfa_lote.py
+          $gs = Get-ChildItem 'C:\Program Files\gs' -Directory | Sort-Object Name -Descending | Select-Object -First 1
+          if (-not $gs) { throw 'Ghostscript installation directory not found.' }
+          New-Item -ItemType Directory -Force -Path 'dist\PDF-A-Lote\vendor\ghostscript' | Out-Null
+          Copy-Item -Path (Join-Path $gs.FullName '*') -Destination 'dist\PDF-A-Lote\vendor\ghostscript' -Recurse -Force
+          Copy-Item LICENSE, TERCEIROS.md, LEIA-ME-PDF-A-Lote.md -Destination 'dist\PDF-A-Lote'
+          Compress-Archive -Path 'dist\PDF-A-Lote\*' -DestinationPath 'dist\PDF-A-Lote-Windows.zip' -Force
+
+      - name: Upload portable package
         uses: actions/upload-artifact@v4
         with:
           name: PDF-A-Lote-Windows
-          path: dist/PDF-A-Lote.exe
+          path: dist/PDF-A-Lote-Windows.zip
           if-no-files-found: error
           retention-days: 14
