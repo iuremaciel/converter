@@ -1,39 +1,33 @@
 # PDF/A Lote
 
-Aplicativo desktop para Windows que organiza conversões PDF/A em lote, mantém os originais intactos e mostra o estado de cada arquivo. Para executar a versão fonte, inicie `pdfa_lote.py` com Python 3 instalado.
+Aplicativo portátil para Windows que converte vários PDFs para PDF/A-1b, PDF/A-2b ou PDF/A-3b. O pacote inclui Ghostscript; não é necessário instalar esse motor separadamente.
 
-## Gerar o executável pelo GitHub
+## Baixar e executar
 
-O repositório precisa conter os arquivos desta pasta na raiz: `pdfa_lote.py` e `.github/workflows/build-windows.yml`. Envie-os para um repositório GitHub na branch `main`. O workflow compila o app para Windows quando esse arquivo é enviado à branch, ou manualmente em **Actions → Build Windows app → Run workflow**. Ao terminar, baixe `PDF-A-Lote-Windows` na seção **Artifacts** da execução. O artefato contém `PDF-A-Lote.exe`.
+No GitHub, abra **Actions → Build Windows app**, escolha a execução mais recente concluída e baixe o artefato **PDF-A-Lote-Windows**. Extraia o ZIP inteiro para uma pasta e execute `PDF-A-Lote.exe` de dentro dela. Não mova o executável para fora da pasta extraída, pois ela contém o Ghostscript.
 
-O `.exe` empacota o Python e a interface, mas não inclui Ghostscript, veraPDF nem um conversor PDF/A comercial. Instale e configure esses motores à parte no computador onde o app será usado.
+O GitHub Actions gera o pacote Windows automaticamente quando os arquivos do projeto são atualizados na branch `main`. Também é possível iniciar uma compilação manual em **Actions → Build Windows app → Run workflow**. Os artefatos de execução ficam disponíveis por 14 dias.
 
-## Perfis
+## Converter e conferir
 
-O seletor apresenta os 11 formatos pedidos: PDF/A-1b, 1a, 2b, 2u, 2a, 3b, 3u, 3a, 4, 4e e 4f. Para converter todos eles, configure em **Configurar motor** um conversor de linha de comando que aceite o perfil escolhido. Os argumentos padrão são:
+1. Adicione PDFs ou uma pasta de PDFs.
+2. Escolha PDF/A-1b, 2b ou 3b e a pasta de destino.
+3. Clique em **Converter lote**.
+4. O estado **Convertido; falta validar** significa que Ghostscript concluiu a conversão, mas ainda não houve uma validação de conformidade.
+5. Para validar, instale o [veraPDF](https://verapdf.org/software/) separadamente, abra **Validador opcional** e selecione o executável `verapdf` (ou `verapdf.bat`). Se o relatório confirmar conformidade, o status será **PDF/A validado**. Um arquivo reprovado será marcado como falha.
 
-```text
---profile {profile} --input {input} --output {output}
-```
+## Limites dos formatos
 
-Edite os argumentos para corresponder ao conversor instalado. `{profile}` recebe, por exemplo, `2u`; `{input}` e `{output}` recebem os caminhos dos arquivos. O conversor e o validador rodam localmente.
+O Ghostscript gera PDF/A-1b, PDF/A-2b e PDF/A-3b. Ele não gera os níveis A ou U, nem PDF/A-4, 4e ou 4f. Esses perfis não aparecem no seletor porque exigem outro motor de conversão compatível. O veraPDF é validador, não conversor.
 
-## Opção gratuita parcial
+A validação independente é importante: terminar a conversão não garante que o arquivo resultante esteja conforme. Os PDFs de origem permanecem intactos; saídas com nomes repetidos são preservadas, salvo se a opção de substituição estiver marcada.
 
-O Ghostscript integrado pode processar PDF/A-1b, 2b e 3b. Ele precisa estar instalado, junto com o arquivo `PDFA_def.ps` configurado com um perfil ICC válido. Instale também o veraPDF para validar o resultado. Os demais perfis não são convertidos pelo Ghostscript.
+## Licenças
 
-O veraPDF valida todos os perfis listados, mas não converte PDFs. Se ele estiver configurado, o app só marcará um arquivo como **PDF/A validado** quando o relatório XML do veraPDF confirmar conformidade. Sem validador, o estado fica como **Convertido; falta validar**.
+Este aplicativo é distribuído sob AGPL-3.0; consulte `LICENSE`. O pacote inclui Ghostscript, software AGPL da Artifex; consulte `TERCEIROS.md` e mantenha os avisos junto ao programa. O código-fonte correspondente desta versão está em [github.com/iuremaciel/converter](https://github.com/iuremaciel/converter). A distribuição deste pacote exige que os termos AGPL sejam respeitados.
 
-## Observações
+## Referências
 
-- PDFs de origem não são alterados; os resultados vão para a pasta escolhida (ou para uma subpasta `PDF-A` junto aos originais).
-- Arquivos com o mesmo nome de saída são preservados, a menos que “Substituir arquivos existentes” esteja marcado.
-- A criação de um PDF/A-1a, 2a, 2u, 3a, 3u, 4, 4e ou 4f depende de um conversor compatível. O programa não promete que apenas adicionar metadados torne o arquivo conforme.
-- Esta é uma primeira versão funcional da interface. Para distribuir como instalador `.exe`, ainda é necessário empacotar o Python e decidir como distribuir/licenciar o motor completo.
-
-## Referências técnicas
-
-- [Ghostscript: criação PDF/A](https://ghostscript.readthedocs.io/en/latest/VectorDevices.html#creating-a-pdf-a-document) — documenta criação apenas para PDF/A-1, -2 e -3 no nível b.
-- [veraPDF: validação pela linha de comando](https://docs.verapdf.org/cli/validation/) — lista os perfis de validação 1a/1b, 2a/2b/2u, 3a/3b/3u, 4/4e/4f.
-- [PyInstaller: modo de arquivo único e janela sem console](https://pyinstaller.org/en/stable/usage.html) — opções usadas pelo workflow para gerar o `.exe` Windows.
-- [GitHub Actions: artefatos de workflow](https://docs.github.com/en/actions/concepts/workflows-and-actions/workflow-artifacts) — explica como baixar o `.exe` enviado pelo build.
+- [Ghostscript: criação de PDF/A](https://ghostscript.readthedocs.io/en/latest/VectorDevices.html#creating-a-pdf-a-document)
+- [veraPDF: validação pela linha de comando](https://docs.verapdf.org/cli/validation/)
+- [PyInstaller](https://pyinstaller.org/en/stable/)
